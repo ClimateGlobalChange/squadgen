@@ -78,6 +78,7 @@ void CSRefinementMap::SetMinimumRefineLevel(
 void CSRefinementMap::InitializeFromPNG(
 	const std::string & strPNGFile,
 	double dLonBase,
+	double dLatBase,
 	bool fInvert,
 	bool fBlockRefine
 ) {
@@ -99,6 +100,9 @@ void CSRefinementMap::InitializeFromPNG(
 
 	// Convert longitude shift to radians
 	dLonBase *= M_PI / 180.0;
+
+	// Convert latitude shift to radians
+	dLatBase *= M_PI / 180.0;
 
 	printf("... Levels: ");
 	int iLastLevel = (-1);
@@ -132,6 +136,8 @@ void CSRefinementMap::InitializeFromPNG(
 
 			CubedSphereTrans::RLLFromABP(dA, dB, iP, dLon, dLat);
 
+                        dLat += dLatBase;
+                      
 			dLon += dLonBase;
 			dLon = dLon - 2.0 * M_PI * floor(dLon / (2.0 * M_PI));
 			if ((dLon < 0.0) || (dLon > 2.0 * M_PI)) {
