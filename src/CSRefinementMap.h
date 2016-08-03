@@ -67,6 +67,7 @@ public:
 	void InitializeFromPNG(
 		const std::string & strPNGFile,
 		double dLonBase,
+		double dLatBase,
 		bool fInvert,
 		bool fBlockRefine
 	);

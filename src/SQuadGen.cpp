@@ -436,8 +436,8 @@ int main(int argc, char** argv) {
 	// Image longitude shift
 	double dImageLonBase;
 
-	// Grid longitude shift
-	double dGridLonShift;
+	// Image latitude shift
+	double dImageLatBase;
 
 	// Grid rotation about the X axis
 	double dGridXRotate;
@@ -472,7 +472,7 @@ int main(int argc, char** argv) {
 		CommandLineInt(nSmoothIterations, "smooth_iter", 10);
 		//CommandLineBool(fReverseOrientation, "reverse_orient");
 		CommandLineDouble(dImageLonBase, "lon_base", -180.0);
-		CommandLineDouble(dGridLonShift, "lon_shift", 0.0);
+		CommandLineDouble(dImageLatBase, "lat_base", 0.0);
 		CommandLineDouble(dGridXRotate, "x_rotate", 0.0);
 		CommandLineDouble(dGridYRotate, "y_rotate", 0.0);
 		CommandLineInt(nTessellations, "tessellate", 0);
@@ -490,9 +490,6 @@ int main(int argc, char** argv) {
 		std::cout << argv[0] << ": No output file specified" << std::endl;
 		return (-1);
 	}
-
-	// Add the grid lon shift to the image lon shift
-	dImageLonBase += dGridLonShift;
 
 	// Check for odd resolution
 	if (strRefineFile != "") {
@@ -541,7 +538,7 @@ int main(int argc, char** argv) {
 			refmap.FromFile("refine_map.dat");
 		} else {
 			refmap.InitializeFromPNG(
-				strRefineFile, dImageLonBase, fInvertImage, fBlockRefine);
+				strRefineFile, dImageLonBase, dImageLatBase, fInvertImage, fBlockRefine);
 			refmap.Normalize();
 			refmap.ToFile("refine_map.dat");
 		}
@@ -616,26 +613,12 @@ int main(int argc, char** argv) {
 		_EXCEPTIONT("Invalid smoothing type");
 	}
 
-	printf("Mesh refinement complete\n");
+	printf("Mesh refinement complete!\n");
 
-	// Perform longitude shift
-	if (dGridLonShift != 0.0) {
-		double dLon;
-		double dLat;
-
-		for (int i = 0; i < vecNodes.size(); i++) {
-			dLat = asin(vecNodes[i].z);
-			dLon = atan2(vecNodes[i].y, vecNodes[i].x);
-
-			dLon += dGridLonShift * M_PI / 180.0;
-
-			vecNodes[i].x = cos(dLat) * cos(dLon);
-			vecNodes[i].y = cos(dLat) * sin(dLon);
-		}
-	}
 
 	// Rotate around the X axis
 	if (dGridXRotate != 0.0) {
+	        printf("Rotating grid around X axis.\n");
 		double dCosTheta = cos(dGridXRotate * M_PI / 180.0);
 		double dSinTheta = sin(dGridXRotate * M_PI / 180.0);
 
@@ -650,6 +633,7 @@ int main(int argc, char** argv) {
 
 	// Rotate around the Y axis
 	if (dGridYRotate != 0.0) {
+	        printf("Rotating grid around Y axis.\n");
 		double dCosTheta = cos(dGridYRotate * M_PI / 180.0);
 		double dSinTheta = sin(dGridYRotate * M_PI / 180.0);
 
