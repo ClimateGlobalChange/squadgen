@@ -6,7 +6,7 @@ NETCDF_INCLUDEDIR=/opt/local/include
 NETCDF_LIBDIR=/opt/local/lib
 
 # Library files to include
-LDFILES= -lnetcdf -lnetcdf_c++
+LDFILES= -lnetcdf
 
 # Local files
 FILES= SQuadGen.cpp \
@@ -20,7 +20,9 @@ FILES= SQuadGen.cpp \
 	   RefinementTemplateLOWCONNOLD.cpp \
        SpringDynamics.cpp \
        Tessellate.cpp\
-       lodepng.cpp
+       lodepng.cpp \
+	   netcdf.cpp \
+	   ncvalues.cpp
 
 # Load system-specific defaults
 CFLAGS+= -I$(NETCDF_INCLUDEDIR)

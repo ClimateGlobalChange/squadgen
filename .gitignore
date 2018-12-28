@@ -1,2 +1,14 @@
-
 *.swp
+*.o
+*.d
+*.bak
+*.g
+*.dat
+*.txt
+*.m~
+*.nc
+*--
+test/*
+
+SQuadGen
+

@@ -15,7 +15,7 @@
 ///	</remarks>
 
 #include <png.h>
-#include <netcdfcpp.h>
+#include "netcdfcpp.h"
 
 #include <string>
 #include <cmath>
@@ -457,7 +457,7 @@ int main(int argc, char** argv) {
 	// Parse the command line
 	BeginCommandLine()
 		CommandLineStringD(strGridType, "grid_type", "CS",
-			"(Options: ICO | CS)");
+			"(Options: CS | ICO | OCT1 | OCT2)");
 		CommandLineStringD(strRefineType, "refine_type", "LOWCONN",
 			"(Options: LOWCONN | CUBIT | LOWCONNOLD)");
 		CommandLineInt(nRefinementLevel, "refine_level", 2);
@@ -525,6 +525,10 @@ int main(int argc, char** argv) {
 		GenerateCubedSphere(nResolution, vecNodes, vecFaces);
 	} else if (strGridType == "ICO") {
 		GenerateIcosahedralQuadGrid(nResolution, vecNodes, vecFaces);
+	} else if (strGridType == "OCT1") {
+		GenerateOctahedralQuadGrid1(nResolution, vecNodes, vecFaces);
+	} else if (strGridType == "OCT2") {
+		GenerateOctahedralQuadGrid2(nResolution, vecNodes, vecFaces);
 	} else {
 		_EXCEPTION1("Unknown grid type: %s\n", strGridType.c_str());
 	}

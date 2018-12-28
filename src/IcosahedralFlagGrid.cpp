@@ -20,6 +20,54 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void GenerateQuadrilaterals(
+	int nRefineLevel,
+	const Edge & edge0,
+	const Edge & edge1,
+	const Edge & edge2,
+	NodeVector & vecNodes,
+	FaceVector & vecFaces
+) {
+	int i;
+	int j;
+	int k;
+
+	int ixEndNode;
+
+	int ixInt;
+
+	// Edges
+	Edge edgeBot;
+	Edge edgeTop;
+
+	// Initial bottom edge
+	edgeBot.push_back(edge0[0]);
+
+	// Loop over all refined faces
+	for (j = 0; j <= nRefineLevel; j++) {
+
+		// Generate top level vertices
+		if (j == nRefineLevel) {
+			edgeTop = edge2;
+		} else {
+			GenerateEdgeVertices(
+				j+1, edge0[j+1], edge1[j+1], vecNodes, edgeTop);
+		}
+
+		// Generate quads
+		printf("%i %i\n", edgeBot.size(), edgeTop.size());
+		for (i = 2; i < 2*j; i += 2) {
+			vecFaces.push_back(Face(
+				edgeTop[i], edgeTop[i+1], edgeBot[i/2+1], edgeBot[i/2]));
+		}
+
+		// New bottom edge
+		edgeBot = edgeTop;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void GenerateFacesFromTriangle(
 	int nRefineLevel,
 	const Edge & edge0,
@@ -225,6 +273,205 @@ void GenerateIcosahedralQuadGrid(
 			vecFaces
 		);
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void GenerateOctahedralQuadGrid1(
+	int nRefineLevel,
+	NodeVector & vecNodes,
+	FaceVector & vecFaces
+) {
+	// Store all octahedral nodes
+	LonLatNodeVector vecLonLatNodes;
+
+	vecLonLatNodes.push_back(LonLatNode(0.0,      -0.5*M_PI));
+	vecLonLatNodes.push_back(LonLatNode(0.0,       0.0));
+	vecLonLatNodes.push_back(LonLatNode(0.5*M_PI,  0.0));
+	vecLonLatNodes.push_back(LonLatNode(1.0*M_PI,  0.0));
+	vecLonLatNodes.push_back(LonLatNode(1.5*M_PI,  0.0));
+	vecLonLatNodes.push_back(LonLatNode(0.0,      +0.5*M_PI));
+
+	// Convert octahedral nodes to Cartesian geometry
+	ConvertFromLonLatToCartesian(vecLonLatNodes, vecNodes);
+
+	// Vector of edges
+	EdgeVector vecEdges;
+	vecEdges.resize(12);
+
+	// Generate vertices along edges
+	for (int i = 0; i < 4; i++) {
+		GenerateEdgeVertices(
+			2*nRefineLevel, 0, i+1, vecNodes, vecEdges[i]);
+	}
+
+	for (int i = 0; i < 4; i++) {
+		GenerateEdgeVertices(
+			2*nRefineLevel, i+1, ((i+1)%4)+1, vecNodes, vecEdges[i+4]);
+	}
+
+	for (int i = 0; i < 4; i++) {
+		GenerateEdgeVertices(
+			2*nRefineLevel, i+1, 5, vecNodes, vecEdges[i+8]);
+	}
+
+	// Generate south polar faces
+	for (int i = 0; i < 4; i++) {
+		GenerateFacesFromTriangle(
+			nRefineLevel,
+			vecEdges[i],
+			vecEdges[(i+1)%4],
+			vecEdges[i+4],
+			vecNodes,
+			vecFaces
+		);
+	}
+
+	// Generate north polar faces
+	for (int i = 0; i < 4; i++) {
+		GenerateFacesFromTriangle(
+			nRefineLevel,
+			vecEdges[i+8],
+			vecEdges[i+4],
+			vecEdges[((i+1)%4)+8].Flip(),
+			vecNodes,
+			vecFaces
+		);
+	}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void GenerateOctahedralQuadGrid2(
+	int nRefineLevel,
+	NodeVector & vecNodes,
+	FaceVector & vecFaces
+) {
+	// Store refine level as Nr
+	const int nR = nRefineLevel;
+
+	// Store all icosahedral nodes
+	LonLatNodeVector vecLonLatNodes;
+
+	double dDeltaLat = 0.5 * M_PI / static_cast<double>(nR);
+
+	// South polar nodes
+	for (int k = 0; k < nR; k++) {
+		int nLevelNodes = 4 * (k+1);
+
+		double dLonOffset = M_PI/static_cast<double>(nLevelNodes)*k;
+
+		for (int i = 0; i < nLevelNodes; i++) {
+			vecLonLatNodes.push_back(
+				LonLatNode(
+					2.0*M_PI/nLevelNodes*i + dLonOffset,
+					-0.5*M_PI + dDeltaLat*(k+1)));
+		}
+	}
+
+	// North polar nodes
+	for (int k = nR-2; k >= 0; k--) {
+		int nLevelNodes = 4 * (k+1);
+
+		double dLonOffset = M_PI/static_cast<double>(nLevelNodes)*k;
+
+		for (int i = 0; i < nLevelNodes; i++) {
+			vecLonLatNodes.push_back(
+				LonLatNode(
+					2.0*M_PI/nLevelNodes*i + dLonOffset,
+					0.5*M_PI - dDeltaLat*(k+1)));
+		}
+	}
+
+	// Convert icosahedral nodes to Cartesian geometry
+	ConvertFromLonLatToCartesian(vecLonLatNodes, vecNodes);
+
+	// South polar face
+	vecFaces.push_back(Face(0, 1, 2, 3));
+
+	// Southern hemisphere faces
+	for (int k = 0; k < nR-1; k++) {
+		for (int l = 0; l < 4; l++) {
+
+			// Square elements
+			{
+				int i0 = 2*k*(k+1) + l*(k+1);
+				int i1 = 2*(k+1)*(k+2) + l*(k+2);
+				int i2 = 2*(k+1)*(k+2)+1 + l*(k+2);
+				int i3 = 2*k*(k+1)+1 + l*(k+1);
+
+				if ((k == 0) && (l == 3)) {
+					i3 = 0;
+				}
+
+				vecFaces.push_back(Face(i0, i1, i2, i3));
+			}
+
+			// Diamond elements
+			if (k != nRefineLevel-2) {
+				for (int m = 0; m <= k; m++) {
+					int i0 = 2*k*(k+1)+1 + l*(k+1) + m;
+					int i1 = 2*(k+1)*(k+2)+1 + l*(k+2) + m;
+					int i2 = 2*(k+2)*(k+3)+1 + l*(k+3) + m + 1;
+					int i3 = 2*(k+1)*(k+2)+1 + l*(k+2) + m + 1;
+
+					if ((l == 3) && (m == k)) {
+						i0 -= 4*(k+1);
+						i3 -= 4*(k+2);
+					}
+
+					vecFaces.push_back(Face(i0, i1, i2, i3));
+				}
+			}
+		}
+	}
+
+	// Northern hemisphere faces
+	int iNodeEq = 2 * nR * (nR+1) - 4 * nR;
+
+	for (int k = 0; k < nR-1; k++) {
+		for (int l = 0; l < 4; l++) {
+
+			// Square elements
+			{
+				int i0 = iNodeEq + l*(nR-k);
+				int i1 = iNodeEq + 4*(nR-k) + l*(nR-(k+1));
+				int i2 = iNodeEq + 4*(nR-k) + l*(nR-(k+1)) + 1;
+				int i3 = iNodeEq + l*(nR-k) + 1;
+
+				if ((k == nR-2) && (l == 3)) {
+					i2 -= 4*(nR-(k+1));
+				}
+
+				vecFaces.push_back(Face(i0, i1, i2, i3));
+			}
+
+
+			// Diamond elements
+			if (k != nR-2) {
+				for (int m = 1; m < nR-k-1; m++) {
+					int i0 = iNodeEq + l*(nR-k) + m + 1;
+					int i1 = iNodeEq + 4*(nR-k) + l*(nR-(k+1)) + m;
+					int i2 = iNodeEq + 4*(nR-k) + 4*(nR-(k+1)) + l*(nR-(k+2)) + m;
+					int i3 = iNodeEq + 4*(nR-k) + l*(nR-(k+1)) + m + 1;
+
+					if ((m == nR-k-2) && (l == 3)) {
+						i2 -= 4*(nR-(k+2));
+						i3 -= 4*(nR-(k+1));
+					}
+
+					vecFaces.push_back(Face(i0, i1, i2, i3));
+				}
+			}
+		}
+		iNodeEq += 4*(nRefineLevel-k);
+	}
+
+	// South polar face
+	int iNodeCount = static_cast<int>(vecNodes.size());
+	vecFaces.push_back(
+		Face(iNodeCount-4, iNodeCount-3, iNodeCount-2, iNodeCount-1));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
