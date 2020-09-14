@@ -445,6 +445,9 @@ int main(int argc, char** argv) {
 	// Grid rotation about the Y axis
 	double dGridYRotate;
 
+	// Grid rotation about the Z axis
+	double dGridZRotate;
+
 	// Number of tesselations
 	int nTessellations;
 
@@ -475,6 +478,7 @@ int main(int argc, char** argv) {
 		CommandLineDouble(dImageLatBase, "lat_base", 0.0);
 		CommandLineDouble(dGridXRotate, "x_rotate", 0.0);
 		CommandLineDouble(dGridYRotate, "y_rotate", 0.0);
+		CommandLineDouble(dGridZRotate, "z_rotate", 0.0);
 		CommandLineInt(nTessellations, "tessellate", 0);
 		CommandLineInt(nSubCellResolution, "subcellres", 0);
 		CommandLineBool(fInvertImage, "invert");
@@ -647,6 +651,21 @@ int main(int argc, char** argv) {
 
 			vecNodes[i].x = dCosTheta * dTempX - dSinTheta * dTempZ;
 			vecNodes[i].z = dSinTheta * dTempX + dCosTheta * dTempZ;
+		}
+	}
+
+	// Rotate around the Z axis
+	if (dGridZRotate != 0.0) {
+	        printf("Rotating grid around Z axis.\n");
+		double dCosTheta = cos(dGridZRotate * M_PI / 180.0);
+		double dSinTheta = sin(dGridZRotate * M_PI / 180.0);
+
+		for (int i = 0; i < vecNodes.size(); i++) {
+			double dTempX = vecNodes[i].x;
+			double dTempY = vecNodes[i].y;
+
+			vecNodes[i].x = dCosTheta * dTempX - dSinTheta * dTempY;
+			vecNodes[i].y = dSinTheta * dTempX + dCosTheta * dTempY;
 		}
 	}
 
