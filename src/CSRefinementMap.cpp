@@ -19,6 +19,7 @@
 #include "Exception.h"
 #include "MathHelper.h"
 #include "CubedSphereTrans.h"
+#include "CoordTransforms.h"
 
 #include "lodepng.h"
 
@@ -80,7 +81,10 @@ void CSRefinementMap::InitializeFromPNG(
 	double dLonBase,
 	double dLatBase,
 	bool fInvert,
-	bool fBlockRefine
+	bool fBlockRefine,
+	double dReferenceLonDeg,
+	double dReferenceLatDeg,
+	double dReferenceOrientDeg
 ) {
 	std::vector<unsigned char> image;
 	unsigned int nWidth;
@@ -98,12 +102,15 @@ void CSRefinementMap::InitializeFromPNG(
 	printf("PNG loaded successfully\n");
 	printf("... Dimensions: %i x %i\n", nWidth, nHeight);
 
-	// Convert longitude shift to radians
+	// Convert arguments to radians
 	dLonBase *= M_PI / 180.0;
-
-	// Convert latitude shift to radians
 	dLatBase *= M_PI / 180.0;
 
+	double dReferenceLonRad = dReferenceLonDeg * M_PI / 180.0;
+	double dReferenceLatRad = dReferenceLatDeg * M_PI / 180.0;
+	double dReferenceOrientRad = dReferenceOrientDeg * M_PI / 180.0;
+
+	// Calculate image greyscale levels
 	printf("... Levels: ");
 	int iLastLevel = (-1);
 	for (int iC = 0; iC < 255; iC++) { 
@@ -131,21 +138,44 @@ void CSRefinementMap::InitializeFromPNG(
 			double dB = -0.25 * M_PI + 0.5 * M_PI
 				* ((static_cast<double>(iB + iT)) / m_nMap.GetColumns());
 
-			double dLon;
-			double dLat;
+			double dLonRad;
+			double dLatRad;
 
-			CubedSphereTrans::RLLFromABP(dA, dB, iP, dLon, dLat);
+			CubedSphereTrans::RLLFromABP(dA, dB, iP, dLonRad, dLatRad);
 
-                        dLat += dLatBase;
-                      
-			dLon += dLonBase;
-			dLon = dLon - 2.0 * M_PI * floor(dLon / (2.0 * M_PI));
-			if ((dLon < 0.0) || (dLon > 2.0 * M_PI)) {
+			double dX0;
+			double dY0;
+			double dZ0;
+
+			RLLtoXYZ_Rad(dLonRad, dLatRad, dX0, dY0, dZ0);
+
+			// Rotate around X axis by +dReferenceOrientRad
+			double dX1 = dX0;
+			double dY1 = + cos(dReferenceOrientRad) * dY0 - sin(dReferenceOrientRad) * dZ0;
+			double dZ1 = + sin(dReferenceOrientRad) * dY0 + cos(dReferenceOrientRad) * dZ0;
+
+			// Rotate around Y axis by -dReferenceLatRad
+			double dX2 = + cos(dReferenceLatRad) * dX1 - sin(dReferenceLatRad) * dZ1;
+			double dY2 = dY1;
+			double dZ2  = + sin(dReferenceLatRad) * dX1 + cos(dReferenceLatRad) * dZ1;
+
+			// Rotate around Z axis by +dReferenceLonRad
+			double dX3 = + cos(dReferenceLonRad) * dX2 - sin(dReferenceLonRad) * dY2;
+			double dY3 = + sin(dReferenceLonRad) * dX2 + cos(dReferenceLonRad) * dY2;
+			double dZ3 = dZ2;
+
+			XYZtoRLL_Rad(dX3, dY3, dZ3, dLonRad, dLatRad);
+
+			// Sample image
+			dLatRad += dLatBase;
+			dLonRad += dLonBase;
+			dLonRad = dLonRad - 2.0 * M_PI * floor(dLonRad / (2.0 * M_PI));
+			if ((dLonRad < 0.0) || (dLonRad > 2.0 * M_PI)) {
 				_EXCEPTIONT("Invalid longitude");
 			}
 
-			int iLon = floor((dLon / (2.0 * M_PI)) * nWidth);
-			int iLat = floor((dLat + 0.5 * M_PI) / M_PI * nHeight);
+			int iLon = floor((dLonRad / (2.0 * M_PI)) * nWidth);
+			int iLat = floor((dLatRad + 0.5 * M_PI) / M_PI * nHeight);
 
 			if (iLon < 0) {
 				iLon = 0;

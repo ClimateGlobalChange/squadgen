@@ -449,7 +449,8 @@ void RefinementTemplateLOWCONN::ApplyInnerCornerTemplate(
 
 	// Do not double-merge nodes
 	// (for instance from two inner corners adjacent to one another)
-	} else if ((iter0 != mapMergeActive.end()) ||
+	} else if (
+		(iter0 != mapMergeActive.end()) ||
 		(iter1 != mapMergeActive.end())
 	) {
 		iter0->second = false;

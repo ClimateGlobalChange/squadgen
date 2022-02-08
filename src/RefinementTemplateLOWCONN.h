@@ -134,14 +134,6 @@ private:
 	SegmentMapIterator iterSegFinal;
 
 	///	<summary>
-	///		Pairs of nodes to merge.
-	///	</summary>
-	typedef std::set<Segment> MergePairSet;
-	typedef MergePairSet::iterator MergePairSetIterator;
-	typedef MergePairSet::value_type MergePairSetElement;
-	MergePairSet setMergePairs;
-
-	///	<summary>
 	///		Map of nodes in the merge pair map and indicator of whether it
 	///		should be merged or not.
 	///	</summary>
@@ -149,6 +141,14 @@ private:
 	typedef ActiveMergeMap::iterator ActiveMergeIterator;
 	typedef ActiveMergeMap::value_type ActiveMergeMapElement;
 	ActiveMergeMap mapMergeActive;
+
+	///	<summary>
+	///		Pairs of nodes to merge.
+	///	</summary>
+	typedef std::set<Segment> MergePairSet;
+	typedef MergePairSet::iterator MergePairSetIterator;
+	typedef MergePairSet::value_type MergePairSetElement;
+	MergePairSet setMergePairs;
 
 	///	<summary>
 	///		Vector of spurious nodes.

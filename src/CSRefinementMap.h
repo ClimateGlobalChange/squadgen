@@ -69,7 +69,10 @@ public:
 		double dLonBase,
 		double dLatBase,
 		bool fInvert,
-		bool fBlockRefine
+		bool fBlockRefine,
+		double dReferenceLonDeg,
+		double dReferenceLatDeg,
+		double dReferenceOrientDeg
 	);
 
 public:

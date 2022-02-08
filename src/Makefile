@@ -2,8 +2,8 @@
 CC= g++
 
 # NETCDF library directories
-NETCDF_INCLUDEDIR=/opt/local/include
-NETCDF_LIBDIR=/opt/local/lib
+NETCDF_INCLUDEDIR=/opt/homebrew/include
+NETCDF_LIBDIR=/opt/homebrew/lib
 
 # Library files to include
 LDFILES= -lnetcdf
@@ -19,14 +19,15 @@ FILES= SQuadGen.cpp \
 	   RefinementTemplateLOWCONN.cpp \
 	   RefinementTemplateLOWCONNOLD.cpp \
        SpringDynamics.cpp \
+	   MeshUtilities.cpp \
        Tessellate.cpp\
        lodepng.cpp \
 	   netcdf.cpp \
 	   ncvalues.cpp
 
 # Load system-specific defaults
-CFLAGS+= -I$(NETCDF_INCLUDEDIR)
-LDFLAGS+= -L$(NETCDF_LIBDIR)
+CFLAGS+= -I$(NETCDF_INCLUDEDIR) -fsanitize=address
+LDFLAGS+= -L$(NETCDF_LIBDIR) -fsanitize=address
 
 include Make.defs
 

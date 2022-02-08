@@ -331,7 +331,7 @@ void DeleteTaggedFaces(
 			vecFaces[i] = vecFaces[i + nOffset];
 		}
 	}
-	vecFaces.erase(vecFaces.end() - nOffset, vecFaces.end());
+	vecFaces.erase(vecFaces.begin() + vecFaces.size() - nOffset, vecFaces.end());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -402,6 +402,7 @@ void RefineGridLevel(
 					// Insert a midpoint node
 					vecOrderedSegments.push_back(vecRefineSegments[j]);
 
+					_ASSERT(j < vecRefineSegments.size());
 					vecRefineSegments.erase(vecRefineSegments.begin() + j);
 
 					fFound = true;
