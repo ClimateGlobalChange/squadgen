@@ -20,8 +20,16 @@
 #include "MathHelper.h"
 #include "CubedSphereTrans.h"
 #include "CoordTransforms.h"
+#include "MeshUtilities.h"
 
 #include "lodepng.h"
+
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+T clamp(const T& n, const T& lower, const T& upper) {
+  return std::max(lower, std::min(n, upper));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -71,6 +79,175 @@ void CSRefinementMap::SetMinimumRefineLevel(
 			m_nMap[iPanel][i][j] = iRefineLevel;
 		}
 	}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CSRefinementMap::InitializeFromRefineRect(
+	const std::string & strRefineRect,
+	double dReferenceLonDeg,
+	double dReferenceLatDeg,
+	double dReferenceOrientDeg
+) {
+	int nActivePanel = (-1);
+	size_t pos;
+	std::string strRefineRectCopy(strRefineRect);
+	while (strRefineRectCopy.length() != 0) {
+
+		// Break up by semicolon
+		pos = strRefineRectCopy.find(";");
+		std::string strActiveRect(strRefineRectCopy.substr(0, pos));
+		if (pos == std::string::npos) {
+			strRefineRectCopy = "";
+		} else {
+			strRefineRectCopy = strRefineRectCopy.substr(pos+1);
+		}
+
+		// Break up by commas
+		int iStage = 0;
+
+		double dLonDeg0;
+		double dLonDeg1;
+		double dLatDeg0;
+		double dLatDeg1;
+		int nRefineLevel;
+
+		while ((pos = strActiveRect.find(",")) != std::string::npos) {
+			if (iStage == 0) {
+				dLonDeg0 = std::stod(strActiveRect.substr(0,pos));
+			} else if (iStage == 1) {
+				dLatDeg0 = std::stod(strActiveRect.substr(0,pos));
+			} else if (iStage == 2) {
+				dLonDeg1 = std::stod(strActiveRect.substr(0,pos));
+			} else if (iStage == 3) {
+				dLatDeg1 = std::stod(strActiveRect.substr(0,pos));
+			}
+			iStage++;
+			strActiveRect.erase(0, pos+1);
+		}
+
+		if (iStage != 4) {
+			_EXCEPTION1("Malformed --refine_rect string: Insufficient entries in \"%s\"", strRefineRect.c_str());
+		}
+		nRefineLevel = std::stoi(strActiveRect.substr(0,pos));
+
+		if (nRefineLevel > m_nMaxRefineLevel) {
+			_EXCEPTION1("Malformed --refine_rect string: Refinement level cannot exceed --refine_level %i\n", m_nMaxRefineLevel);
+		}
+		if (nRefineLevel < 1) {
+			_EXCEPTION1("Malformed --refine_rect string: Refinement level must be greater than 0\n", m_nMaxRefineLevel);
+		}
+
+		//printf("%1.5f %1.5f %1.5f %1.5f %i\n", dLonDeg0, dLonDeg1, dLatDeg0, dLatDeg1, nRefineLevel);
+
+		// Convert coordinates to ABP
+		double dX0, dY0, dZ0;
+		double dX1, dY1, dZ1;
+		RLLtoXYZ_Deg(dLonDeg0, dLatDeg0, dX0, dY0, dZ0);
+		RLLtoXYZ_Deg(dLonDeg1, dLatDeg1, dX1, dY1, dZ1);
+
+		UnrotateCoordByOrientLatLon(
+			-dReferenceLonDeg,
+			-dReferenceLatDeg,
+			-dReferenceOrientDeg,
+			dX0, dY0, dZ0);
+
+		UnrotateCoordByOrientLatLon(
+			-dReferenceLonDeg,
+			-dReferenceLatDeg,
+			-dReferenceOrientDeg,
+			dX1, dY1, dZ1);
+
+		double dUnrotLonRad0, dUnrotLatRad0;
+		double dUnrotLonRad1, dUnrotLatRad1;
+
+		XYZtoRLL_Rad(dX0, dY0, dZ0, dUnrotLonRad0, dUnrotLatRad0);
+		XYZtoRLL_Rad(dX1, dY1, dZ1, dUnrotLonRad1, dUnrotLatRad1);
+
+		//printf("%1.5f %1.5f %1.5f %1.5f\n",
+		//	RadToDeg(dUnrotLonRad0),
+		//	RadToDeg(dUnrotLonRad1),
+		//	RadToDeg(dUnrotLatRad0),
+		//	RadToDeg(dUnrotLatRad1));
+
+		double dA0, dB0;
+		double dA1, dB1;
+		int nP0, nP1;
+
+		CubedSphereTrans::ABPFromRLL(dUnrotLonRad0, dUnrotLatRad0, dA0, dB0, nP0);
+		CubedSphereTrans::ABPFromRLL(dUnrotLonRad1, dUnrotLatRad1, dA1, dB1, nP1);
+
+		if (nActivePanel == (-1)) {
+			nActivePanel = nP0;
+		}
+		if ((nP0 != nP1) || (nP0 != nActivePanel)) {
+			_EXCEPTIONT("At present all --refine_rect coordinates must be on the same cubed sphere panel");
+		}
+
+		// Convert equiangular ABP coordinate to [0,1]x[0,1]
+		dA0 = (dA0 + 0.25 * M_PI) / (0.5 * M_PI);
+		dA1 = (dA1 + 0.25 * M_PI) / (0.5 * M_PI);
+		dB0 = (dB0 + 0.25 * M_PI) / (0.5 * M_PI);
+		dB1 = (dB1 + 0.25 * M_PI) / (0.5 * M_PI);
+
+		dA0 = clamp(dA0, 0.0, 1.0);
+		dA1 = clamp(dA1, 0.0, 1.0);
+		dB0 = clamp(dB0, 0.0, 1.0);
+		dB1 = clamp(dB1, 0.0, 1.0);
+
+		if (dA1 < dA0) {
+			std::swap(dA0, dA1);
+		}
+		if (dB1 < dB0) {
+			std::swap(dB0, dB1);
+		}
+
+		// Refinement level
+		int nPatchSize = IntPow(2, m_nMaxRefineLevel-nRefineLevel);
+		int nActiveResolution = m_nBaseResolution * IntPow(2, nRefineLevel-1);
+
+		// Identify integer refinement region
+		int iA0 = static_cast<int>(dA0 * static_cast<double>(nActiveResolution));
+		int iA1 = static_cast<int>(dA1 * static_cast<double>(nActiveResolution));
+		if (iA0 > nActiveResolution-1) {
+			iA0 = nActiveResolution-1;
+		}
+		if (iA1 > nActiveResolution-1) {
+			iA1 = nActiveResolution-1;
+		}
+		if (iA1 < nActiveResolution-1) {
+			iA1++;
+		}
+
+		int iB0 = static_cast<int>(dB0 * static_cast<double>(nActiveResolution));
+		int iB1 = static_cast<int>(dB1 * static_cast<double>(nActiveResolution));
+		if (iB0 > nActiveResolution-1) {
+			iB0 = nActiveResolution-1;
+		}
+		if (iB1 > nActiveResolution-1) {
+			iB1 = nActiveResolution-1;
+		}
+		if (iB1 < nActiveResolution-1) {
+			iB1++;
+		}
+
+		//printf("%1.5f %1.5f %i : %1.5f %1.5f %i\n", dA0, dB0, nP0, dA1, dB1, nP1);
+		//printf("%i %i %i : %i %i %i : %i\n", iA0, iB0, nP0, iA1, iB1, nP1, nPatchSize);
+		//_EXCEPTION();
+
+		int nMaxResolution = m_nBaseResolution * IntPow(2, m_nMaxRefineLevel-1);
+		_ASSERT(iA0*nPatchSize < nMaxResolution);
+		_ASSERT(iA1*nPatchSize < nMaxResolution);
+		_ASSERT(iB0*nPatchSize < nMaxResolution);
+		_ASSERT(iB1*nPatchSize < nMaxResolution);
+
+		// Refine
+		for (int i = iA0*nPatchSize; i <= iA1*nPatchSize; i++) {
+		for (int j = iB0*nPatchSize; j <= iB1*nPatchSize; j++) {
+			m_nMap[nActivePanel][i][j] = nRefineLevel;
+		}
+		}
 	}
 }
 

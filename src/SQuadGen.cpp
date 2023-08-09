@@ -105,6 +105,9 @@ int main(int argc, char** argv) {
 	// Sub-cell resolution
 	int nSubCellResolution;
 
+	// Rectangular refinement commands
+	std::string strRefineRect;
+
 	// Block refine
 	bool fBlockRefine;
 
@@ -117,6 +120,7 @@ int main(int argc, char** argv) {
 		CommandLineInt(nRefinementLevel, "refine_level", 2);
 		CommandLineInt(nResolution, "resolution", 10);
 		CommandLineString(strRefineFile, "refine_file", "");
+		CommandLineString(strRefineRect, "refine_rect", "");
 		CommandLineString(strOutputFile, "output", "");
 		CommandLineBool(fLoadCSRefinementMap, "loadcsrefinementmap");
 		CommandLineStringD(strSmoothType, "smooth_type", "NONE",
@@ -124,7 +128,6 @@ int main(int argc, char** argv) {
 		CommandLineIntD(nTransSmoothDist, "smooth_dist", 1,
 			"(Smooth distance, -1 = smooth entire mesh)");
 		CommandLineInt(nSmoothIterations, "smooth_iter", 10);
-		//CommandLineBool(fReverseOrientation, "reverse_orient");
 		CommandLineDouble(dImageLonBase, "lon_base", -180.0);
 		CommandLineDouble(dImageLatBase, "lat_base", 0.0);
 		CommandLineDouble(dGridXRotate, "x_rotate", 0.0);
@@ -190,13 +193,33 @@ int main(int argc, char** argv) {
 
 	// Perform refinement (if refinement file specified)
 	if ((nRefinementLevel > 0) &&
-		((strRefineFile != "") || (fLoadCSRefinementMap))
+		((strRefineRect != "") || (strRefineFile != "") || (fLoadCSRefinementMap))
 	) {
+		int nCommandLineCount = 
+			  ((strRefineRect != "")?(1):(0))
+			+ ((strRefineFile != "")?(1):(0))
+			+ (fLoadCSRefinementMap?(1):(0));
+
+		if (nCommandLineCount > 1) {
+			_EXCEPTIONT("Only one of --refine_map, --refine_rect or --loadcsrefinementmap allowed");
+		}
+
 		CSRefinementMap refmap(nResolution, nRefinementLevel);
 
 		if (fLoadCSRefinementMap) {
 			printf("..Loading mesh from refinement file\n");
 			refmap.FromFile("refine_map.dat");
+
+		} else if (strRefineRect != "") {
+			refmap.InitializeFromRefineRect(
+				strRefineRect,
+				dReferenceLonDeg,
+				dReferenceLatDeg,
+				dReferenceOrientDeg);
+
+			refmap.Normalize();
+			refmap.ToFile("refine_map.dat");
+
 		} else {
 			refmap.InitializeFromPNG(
 				strRefineFile,

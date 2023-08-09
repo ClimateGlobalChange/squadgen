@@ -235,6 +235,41 @@ void ComputeMeshQuality(
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void UnrotateCoordByOrientLatLon(
+	double dRotLonDeg,
+	double dRotLatDeg,
+	double dRotOrientDeg,
+	double & dX0,
+	double & dY0,
+	double & dZ0
+) {
+	double dReferenceLonRad = DegToRad(dRotLonDeg);
+	double dReferenceLatRad = DegToRad(dRotLatDeg);
+	double dReferenceOrientRad = DegToRad(dRotOrientDeg);
+
+	// Rotate around Z axis by +dReferenceLonRad
+	double dX1 = + cos(dReferenceLonRad) * dX0 - sin(dReferenceLonRad) * dY0;
+	double dY1 = + sin(dReferenceLonRad) * dX0 + cos(dReferenceLonRad) * dY0;
+	double dZ1 = dZ0;
+
+	// Rotate around Y axis by -dReferenceLatRad
+	double dX2 = + cos(dReferenceLatRad) * dX1 - sin(dReferenceLatRad) * dZ1;
+	double dY2 = dY1;
+	double dZ2  = + sin(dReferenceLatRad) * dX1 + cos(dReferenceLatRad) * dZ1;
+
+	// Rotate around X axis by +dReferenceOrientRad
+	double dX3 = dX2;
+	double dY3 = + cos(dReferenceOrientRad) * dY2 - sin(dReferenceOrientRad) * dZ2;
+	double dZ3 = + sin(dReferenceOrientRad) * dY2 + cos(dReferenceOrientRad) * dZ2;
+
+	// Store output
+	dX0 = dX3;
+	dY0 = dY3;
+	dZ0 = dZ3;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void RotateMeshByOrientLatLon(
 	NodeVector & vecNodes,
 	double dRotLonDeg,
@@ -311,7 +346,7 @@ void OutputNetCDFFile(
 	ncOut.add_att("file_size", 0);
 
 	char szTitle[128];
-	sprintf(szTitle, "cubit(%s) 01/01/2013: 00:00:00", strFilename.c_str());
+	snprintf(szTitle, 128, "cubit(%s) 01/01/2013: 00:00:00", strFilename.c_str());
 	ncOut.add_att("title", szTitle);
 
 	// Time_whole (unused)

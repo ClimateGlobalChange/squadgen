@@ -62,8 +62,19 @@ private:
 
 public:
 	///	<summary>
+	///		Initialize the refinement map using a refinement rectangle string.
+	///	</summary>
+	void InitializeFromRefineRect(
+		const std::string & strRefineRect,
+		double dReferenceLonDeg,
+		double dReferenceLatDeg,
+		double dReferenceOrientDeg
+	);
+
+public:
+	///	<summary>
 	///		Initialize the refinement map using a PNG image.
-	///	</smmary>
+	///	</summary>
 	void InitializeFromPNG(
 		const std::string & strPNGFile,
 		double dLonBase,

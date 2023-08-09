@@ -17,11 +17,24 @@
 #ifndef _MESHUTILITIES_H_
 #define _MESHUTILITIES_H_
 
+#include "GridElements.h"
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void ComputeMeshQuality(
 	const NodeVector & vecNodes,
 	const FaceVector & vecFaces
+);
+
+///////////////////////////////////////////////////////////////////////////////
+
+void UnrotateCoordByOrientLatLon(
+	double dRotLonDeg,
+	double dRotLatDeg,
+	double dRotOrientDeg,
+	double & dX,
+	double & dY,
+	double & dZ
 );
 
 ///////////////////////////////////////////////////////////////////////////////
