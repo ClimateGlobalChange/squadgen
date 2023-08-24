@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
 	}
 
 	// Check for odd resolution
-	if (strRefineFile != "") {
+	if ((strRefineFile != "") || (strRefineRect != "")) {
 		if ((strRefineType == "LOWCONN") || (strRefineType == "LOWCONNOLD")) {
 			if ((nResolution % 2) == 1) {
 				_EXCEPTIONT("\nERROR: "
