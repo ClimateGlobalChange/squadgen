@@ -55,8 +55,8 @@ class DataMatrix {
 		///		Number of columns in this matrix.
 		///	</param>
 		DataMatrix(
-			unsigned int sRows,
-			unsigned int sColumns
+			size_t sRows,
+			size_t sColumns
 		) :
 			m_sRows(0),
 			m_sColumns(0),
@@ -117,11 +117,11 @@ class DataMatrix {
 		///		Allocate memory for this object.
 		///	</summary>
 		void Initialize(
-			unsigned int sRows,
-			unsigned int sColumns,
+			size_t sRows,
+			size_t sColumns,
 			bool fAutoZero = true
 		) {
-			unsigned int sI;
+			size_t sI;
 
 			// Check for zero size
 			if ((sRows == 0) || (sColumns == 0)) {
@@ -145,11 +145,11 @@ class DataMatrix {
 			Deinitialize();
 
 			// Calculate the per-row footprint
-			unsigned int sRowPtrFootprint = sRows * sizeof(DataType *);
-			unsigned int sRowFootprint = sColumns * sizeof(DataType);
+			size_t sRowPtrFootprint = sRows * sizeof(DataType *);
+			size_t sRowFootprint = sColumns * sizeof(DataType);
 
 			// Calculate padding to align on DataType boundaries
-			unsigned int sPadding;
+			size_t sPadding;
 			if ((sRowPtrFootprint % sizeof(DataType)) == 0) {
 				sPadding = 0;
 			} else {
@@ -240,21 +240,21 @@ class DataMatrix {
 		///	<summary>
 		///		Get the number of rows in this matrix.
 		///	</summary>
-		inline unsigned int GetRows() const {
+		inline size_t GetRows() const {
 			return m_sRows;
 		}
 
 		///	<summary>
 		///		Get the number of columns in this matrix.
 		///	</summary>
-		inline unsigned int GetColumns() const {
+		inline size_t GetColumns() const {
 			return m_sColumns;
 		}
 
 		///	<summary>
 		///		Get the total number of elements in this matrix.
 		///	</summary>
-		inline unsigned int GetTotalElements() const {
+		inline size_t GetTotalElements() const {
 			return m_sRows * m_sColumns;
 		}
 
@@ -271,8 +271,8 @@ class DataMatrix {
 		///		Give a string representation of this object.
 		///	</summary>
 		std::string ToString() const {
-			unsigned int i;
-			unsigned int j;
+			size_t i;
+			size_t j;
 
 			std::stringstream strstr;
 
@@ -300,12 +300,12 @@ class DataMatrix {
 		///	<summary>
 		///		The number of rows in this matrix.
 		///	</summary>
-		unsigned int m_sRows;
+		size_t m_sRows;
 
 		///	<summary>
 		///		The number of columns in this matrix.
 		///	</summary>
-		unsigned int m_sColumns;
+		size_t m_sColumns;
 
 		///	<summary>
 		///		A pointer to the data associated with this matrix.

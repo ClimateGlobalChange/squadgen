@@ -54,7 +54,7 @@ class DataVector {
 		///		Constructor.
 		///	</summary>
 		DataVector(
-			unsigned int sRows
+			size_t sRows
 		) :
 			m_data(NULL)
 		{
@@ -110,7 +110,7 @@ class DataVector {
 		///		Allocate data for this object.
 		///	</summary>
 		void Initialize(
-			unsigned int sRows,
+			size_t sRows,
 			bool fAutoZero = true
 		) {
 
@@ -197,7 +197,7 @@ class DataVector {
 		///	<summary>
 		///		Get the number of rows in this matrix.
 		///	</summary>
-		inline unsigned int GetRows() const {
+		inline size_t GetRows() const {
 			return m_sRows;
 		}
 
@@ -220,7 +220,7 @@ class DataVector {
 		///	<summary>
 		///		The number of rows in this matrix.
 		///	</summary>
-		unsigned int m_sRows;
+		size_t m_sRows;
 
 		///	<summary>
 		///		A pointer to the data associated with this matrix.

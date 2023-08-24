@@ -52,9 +52,9 @@ class DataMatrix3D {
 		///		Constructor.
 		///	</summary>
 		DataMatrix3D(
-			unsigned int sRows,
-			unsigned int sColumns,
-			unsigned int sSubColumns
+			size_t sRows,
+			size_t sColumns,
+			size_t sSubColumns
 		) :
 			m_data(NULL)
 		{
@@ -114,13 +114,13 @@ class DataMatrix3D {
 		///		Allocate data for this object.
 		///	</summary>
 		void Initialize(
-			unsigned int sRows,
-			unsigned int sColumns,
-			unsigned int sSubColumns,
+			size_t sRows,
+			size_t sColumns,
+			size_t sSubColumns,
 			bool fAutoZero = true
 		) {
-			unsigned int sI;
-			unsigned int sJ;
+			size_t sI;
+			size_t sJ;
 
 			// Check for zero size
 			if ((sRows == 0) || (sColumns == 0) || (sSubColumns == 0)) {
@@ -146,11 +146,11 @@ class DataMatrix3D {
 			Deinitialize();
 
 			// Calculate the per-row footprint
-			unsigned int sRowPtrFootprint =
+			size_t sRowPtrFootprint =
 				sRows * sizeof(DataType **);
-			unsigned int sColumnPtrFootprint =
+			size_t sColumnPtrFootprint =
 				sColumns * sizeof(DataType *);
-			unsigned int sColumnFootprint =
+			size_t sColumnFootprint =
 				sSubColumns * sizeof(DataType);
 
 			// Allocate memory
@@ -210,8 +210,8 @@ class DataMatrix3D {
 			Initialize(dm.m_sSize[0], dm.m_sSize[1], dm.m_sSize[2]);
 
 			// Copy data
-			unsigned int sRowPtrFootprint = m_sSize[0] * sizeof(DataType **);
-			unsigned int sColPtrFootprint = m_sSize[1] * sizeof(DataType *);
+			size_t sRowPtrFootprint = m_sSize[0] * sizeof(DataType **);
+			size_t sColPtrFootprint = m_sSize[1] * sizeof(DataType *);
 
 			memcpy(
 				reinterpret_cast<char*>(m_data) +
@@ -275,35 +275,35 @@ class DataMatrix3D {
 		///	<summary>
 		///		Get the number of rows in this matrix.
 		///	</summary>
-		inline unsigned int GetRows() const {
+		inline size_t GetRows() const {
 			return m_sSize[0];
 		}
 
 		///	<summary>
 		///		Get the number of columns in this matrix.
 		///	</summary>
-		inline unsigned int GetColumns() const {
+		inline size_t GetColumns() const {
 			return m_sSize[1];
 		}
 
 		///	<summary>
 		///		Get the number of columns in this matrix.
 		///	</summary>
-		inline unsigned int GetSubColumns() const {
+		inline size_t GetSubColumns() const {
 			return m_sSize[2];
 		}
 
 		///	<summary>
 		///		Get the number of rows in this matrix.
 		///	</summary>
-		inline unsigned int GetSize(int dim) const {
+		inline size_t GetSize(int dim) const {
 			return m_sSize[dim];
 		}
 
 		///	<summary>
 		///		Get the total number of elements in this matrix.
 		///	</summary>
-		inline unsigned int GetTotalElements() const {
+		inline size_t GetTotalElements() const {
 			return m_sSize[0] * m_sSize[1] * m_sSize[2];
 		}
 
@@ -319,7 +319,7 @@ class DataMatrix3D {
 		///	<summary>
 		///		The number of elements in each dimension of this matrix.
 		///	</summary>
-		unsigned int m_sSize[3];
+		size_t m_sSize[3];
 
 		///	<summary>
 		///		A pointer to the data associated with this matrix.
