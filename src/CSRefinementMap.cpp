@@ -90,7 +90,6 @@ void CSRefinementMap::InitializeFromRefineRect(
 	double dReferenceLatDeg,
 	double dReferenceOrientDeg
 ) {
-	int nActivePanel = (-1);
 	size_t pos;
 	std::string strRefineRectCopy(strRefineRect);
 	while (strRefineRectCopy.length() != 0) {
@@ -178,11 +177,8 @@ void CSRefinementMap::InitializeFromRefineRect(
 		CubedSphereTrans::ABPFromRLL(dUnrotLonRad0, dUnrotLatRad0, dA0, dB0, nP0);
 		CubedSphereTrans::ABPFromRLL(dUnrotLonRad1, dUnrotLatRad1, dA1, dB1, nP1);
 
-		if (nActivePanel == (-1)) {
-			nActivePanel = nP0;
-		}
-		if ((nP0 != nP1) || (nP0 != nActivePanel)) {
-			_EXCEPTIONT("At present all --refine_rect coordinates must be on the same cubed sphere panel");
+		if (nP0 != nP1) {
+			_EXCEPTIONT("Individual --refine_rect patches must be on the same cubed sphere panel");
 		}
 
 		// Convert equiangular ABP coordinate to [0,1]x[0,1]
@@ -245,7 +241,7 @@ void CSRefinementMap::InitializeFromRefineRect(
 		// Refine
 		for (int i = iA0*nPatchSize; i <= iA1*nPatchSize; i++) {
 		for (int j = iB0*nPatchSize; j <= iB1*nPatchSize; j++) {
-			m_nMap[nActivePanel][i][j] = nRefineLevel;
+			m_nMap[nP0][i][j] = nRefineLevel;
 		}
 		}
 	}
