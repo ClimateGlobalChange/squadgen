@@ -1,8 +1,8 @@
 \file    README.md
 \author  Paul Ullrich
-\version August 25, 2015
+\version May 8, 2024
 
-Copyright 2000-2015 Paul Ullrich
+Copyright 2024 Paul Ullrich
 
 This file is distributed as part of the Tempest source code package.
 Permission is granted to use, copy, modify and distribute this
@@ -16,7 +16,6 @@ Spherical Quadrilateral Mesh Generator (SQuadGen)
 REQUIRED EXTERNAL LIBRARIES
   libpng
   libnetcdf
-  libnetcdf_c++
 
 BUILDING
   Modify src/Makefile to specify NetCDF paths
@@ -26,20 +25,29 @@ SYNOPSIS
   ./SQuadGen <Parameter List>
 
 PARAMETERS
-  --grid_type <string> ["CS"] (Options: ICO | CS)
+  --grid_type <string> ["CS"] (Options: CS | ICO | OCT1 | OCT2)
   --refine_type <string> ["LOWCONN"] (Options: LOWCONN | CUBIT | LOWCONNOLD)
   --refine_level <integer> [2] 
   --resolution <integer> [10] 
   --refine_file <string> [""] 
-  --output <string> ["grid.g"] 
+  --refine_rect <string> [""] 
+  --output <string> [""] 
   --loadcsrefinementmap <bool> [false] 
-  --smooth_type <string> ["NONE"] (Options: NONE | SPRING)
+  --smooth_type <string> ["NONE"] (Options: NONE | SPRING | PRESSURE)
   --smooth_dist <integer> [1] (Smooth distance, -1 = smooth entire mesh)
   --smooth_iter <integer> [10] 
   --lon_base <double> [-180.000000] 
-  --lon_shift <double> [0.000000] 
+  --lat_base <double> [0.000000] 
+  --x_rotate <double> [0.000000] 
+  --y_rotate <double> [0.000000] 
+  --lon_ref <double> [0.000000] 
+  --lat_ref <double> [0.000000] 
+  --orient_ref <double> [0.000000] 
+  --tessellate <integer> [0] 
+  --subcellres <integer> [0] 
   --invert <bool> [false] 
   --block_refine <bool> [false] 
+
 
 DESCRIPTION 
   SQuadGen is a mesh generation utility that uses a cubed-sphere base mesh to
@@ -63,9 +71,32 @@ OPTIONS
     a few enhancements over the previous LOWCONN old template by removing
     spurious elements with high aspect ratios (typically near interior corners).
 
+  --refine_level <integer>
+
+    Number of levels of refinement to use in grid generation. Each refinement 
+    level corresponds to a 2x refinement of the mesh.
+
+  --resolution <integer>
+
+    Base resolution of the mesh. For cubed-sphere meshes this corresponds to the
+    number of faces along each edge of the cubed-sphere.
+  
   --refine_file <filename>
 
     Filename of the PNG file to use for specifying refinement regions.
+
+  --refine_rect <string>
+
+    An argument specifying rectangular regions on the cubed-sphere where 
+    refinement should be applied. Each refine_rect should be separated by a
+    semi-colon and consists of five arguments:
+    
+    <lon1>,<lat1>,<lon2>,<lat2>,<level>
+
+    where <lon1>,<lat1> are the longitude-latitude coordinates of the lower-right
+    corner of the refinement region, <lon2>,<lat2> are the longitude-latitude
+    coordinates of the upper-right corner of the refinement region, and <level>
+    is the number of levels of refinement.
 
   --output <filename>
 
@@ -102,6 +133,21 @@ OPTIONS
 
     Amount of rotation (in degrees) to apply to the base mesh.
 
+  --lon_ref <double>
+
+    The central longitude of the first panel of the cubed-sphere (in degrees).
+  
+  --lat_ref <double>
+
+    The central latitude of the first panel of the cubed-sphere (in degrees).
+
+  --orient_ref <double>
+
+    The orientation of the cubed sphere at <lon_ref>,<lat_ref> in degrees.
+    A value of 0 means the cubed-sphere is aligned perfectly zonal at the\
+    reference point. A value of 45 means the cubed-sphere is inclined by 45
+    degrees at this point.
+  
   --invert
 
     Invert the base image (so black identifies regions of refinement).
