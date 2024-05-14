@@ -14,7 +14,6 @@
 ///		or implied warranty.
 ///	</remarks>
 
-#include <png.h>
 #include "netcdfcpp.h"
 
 #include <string>
