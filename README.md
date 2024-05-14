@@ -26,6 +26,31 @@ Modify `src/Makefile` to specify NetCDF paths
 make all
 ```
 
+## INSTALLING FROM CONDA PACKAGE
+
+An alternative to building SQuadGen from source is to install a pre-built Linux
+verison from a conda package.
+
+If you don't already have a conda base environment set up, you can install
+[miniforge3](https://github.com/conda-forge/miniforge?tab=readme-ov-file#miniforge3).
+
+To add SQuadGen to an existing conda environment, activate the environment and
+run:
+```sh
+conda install squadgen
+```
+
+To create a new conda environment with SQuadGen in it (and any other packages
+you like, run:
+```sh
+conda create -n <env_name> squadgen <package> <package>
+```
+Then, activate the environment with:
+```sh
+conda activate <env_name>
+```
+The `SQuadGen` executable will be in your path.
+
 ## SYNOPSIS
 ```sh
   ./SQuadGen <Parameter List>
