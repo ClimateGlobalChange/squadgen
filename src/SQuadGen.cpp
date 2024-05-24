@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
 	}
 
 	// Check for odd resolution
-	if ((strRefineFile != "") || (strRefineRect != "")) {
+	if ((strRefineFile != "") || (strRefineRect != "") || fLoadCSRefinementMap) {
 		if ((strRefineType == "LOWCONN") || (strRefineType == "LOWCONNOLD")) {
 			if ((nResolution % 2) == 1) {
 				_EXCEPTIONT("\nERROR: "
