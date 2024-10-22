@@ -14,7 +14,6 @@ Spherical Quadrilateral Mesh Generator (SQuadGen)
 =================================================
 
 REQUIRED EXTERNAL LIBRARIES
-  libpng
   libnetcdf
 
 BUILDING
